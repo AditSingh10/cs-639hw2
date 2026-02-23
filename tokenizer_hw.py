@@ -73,7 +73,7 @@ def pretokenize_text(text: str, special_tokens: list[str]) -> Counter[tuple[int,
             for token in pre_tokens:
                 key = tuple(token.encode("utf-8"))
                 count[key] += 1
-    raise count
+    return count
 
 
 def process_chunk(
