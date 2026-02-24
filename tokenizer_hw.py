@@ -94,9 +94,9 @@ def process_chunk(
         f.seek(start)
         chunk = f.read(end - start).decode("utf-8", errors="ignore")
 
-    # TODO: you may directly call pretokenize_text(chunk, special_tokens)
-    # and return it.
-    raise NotImplementedError
+        count = pretokenize_text(chunk, special_tokens)
+    return count
+
 
 
 def pre_tokenize(
@@ -173,8 +173,28 @@ def count_pairs(
     - sequences are tuples of token IDs (ints), e.g., (104,101,108,108,111)
     - Do not count pairs in sequences of length < 2.
     """
-    # TODO: implement
-    raise NotImplementedError
+
+    pairs_count = Counter()
+    pairs_to_sequences = {}
+    sequences_to_pairs = {}
+    for key, value in inp.items():
+        if len(key) < 2:
+            continue 
+        if key not in sequences_to_pairs:
+            sequences_to_pairs[key] = set()
+        for i in range(len(key)):
+            if i + 1 < len(key):
+                pair = (key[i], key[i+1])
+                pairs_count[pair] += value
+                if pair not in pairs_to_sequences:
+                    toAdd = set()
+                    toAdd.add(key)
+                    pairs_to_sequences[pair] = toAdd
+                elif pair in pairs_to_sequences:
+                    pairs_to_sequences.get(pair).add(key)
+                sequences_to_pairs.get(key).add(pair)
+    return pairs_count, pairs_to_sequences, sequences_to_pairs
+
 
 
 def merge_pair(
@@ -194,8 +214,28 @@ def merge_pair(
     - Replace all occurrences of (a,b) in a sequence left-to-right.
     - Only sequences that change should appear in keys_to_remove/keys_to_add.
     """
-    # TODO: implement
-    raise NotImplementedError
+    
+    set_of_sequences_to_merge = pairs_to_sequences.get(old)
+    if not set_of_sequences_to_merge:
+        return [], []
+    keys_to_remove = []
+    keys_to_add = []
+    for sequence in set_of_sequences_to_merge:
+        cnt = byte_tokens_count.get(sequence)
+        new_sequence = []
+        i = 0
+        
+        while i < len(sequence):
+            if i + 1 < len(sequence) and (sequence[i], sequence[i + 1]) == old:
+                new_sequence.append(new)
+                i += 2
+            else:
+                new_sequence.append(sequence[i])
+                i += 1
+                
+        keys_to_remove.append(sequence)
+        keys_to_add.append((new_sequence, cnt))
+    return keys_to_remove, keys_to_add
 
 
 def select_best_pair(
