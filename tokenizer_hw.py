@@ -175,24 +175,17 @@ def count_pairs(
     """
 
     pairs_count = Counter()
-    pairs_to_sequences = {}
-    sequences_to_pairs = {}
+    pairs_to_sequences = defaultdict(set)
+    sequences_to_pairs = defaultdict(set)
     for key, value in inp.items():
         if len(key) < 2:
             continue 
-        if key not in sequences_to_pairs:
-            sequences_to_pairs[key] = set()
         for i in range(len(key)):
             if i + 1 < len(key):
                 pair = (key[i], key[i+1])
                 pairs_count[pair] += value
-                if pair not in pairs_to_sequences:
-                    toAdd = set()
-                    toAdd.add(key)
-                    pairs_to_sequences[pair] = toAdd
-                elif pair in pairs_to_sequences:
-                    pairs_to_sequences.get(pair).add(key)
-                sequences_to_pairs.get(key).add(pair)
+                pairs_to_sequences[pair].add(key)
+                sequences_to_pairs[key].add(pair)
     return pairs_count, pairs_to_sequences, sequences_to_pairs
 
 
